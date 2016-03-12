@@ -4,27 +4,63 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class PathFinder {
 
 	public static void solveMaze(String inputFile, String outputFile)
 			throws IOException {
 		Graph graph = new Graph(inputFile);
-
-		// you can disregard these loops, i was just using it to check if nodes in the graph
-		// were being assigned their correct neighbors. used on tinyMaze.txt
-		for (MazeNode[] array : graph.nodes) {
-			for (MazeNode node : array) {
-				//node.toString returns this node's data followed by a
-				// space, followed by all of its neighbors
-				System.out.println(node.toString());
+		// Queue used for path finding
+		Queue<MazeNode> queue = new LinkedList<MazeNode>();
+		// Contains nodes representing the shortest path from S to G
+		LinkedList<MazeNode> nodePath = new LinkedList<MazeNode>();
+		// Starts the search from the 'S' node obtained from the graph of the maze
+		graph.start.visited = true;
+		queue.add(graph.start);
+		while (!queue.isEmpty()) {
+			// current node becomes the first node in the queue
+			MazeNode current = queue.poll();
+			// if this node matches the goal, constructs the pathway from where
+			// it came and breaks from the loop
+			if (current.data == 'G') {
+				// last node before the goal
+				MazeNode step = current.cameFrom;
+				// loop used to construct the entire path, goes until it finds
+				// the starting point again
+				while (step.data != 'S') {
+					// adds the step to a list later used to create the path
+					// dots
+					nodePath.add(step);
+					step = step.cameFrom;
+				}
+				// Shortest path was found, stops searching
+				break;
+			}
+			// runs through the list of the current node's neighbors adding them
+			// to the queue if they
+			// are not walls and have not already been visited
+			for (MazeNode neighbor : current.neighbors) {
+				if (neighbor.data != 'X' && neighbor.visited == false) {
+					neighbor.visited = true;
+					neighbor.cameFrom = current;
+					queue.add(neighbor);
+				}
 			}
 		}
-		//this loop prints out the maze as represented in the graph as a 2D array
+		// After the shortest path has been found, changes the chars in the
+		// nodes along the shortest path to '*'
+		for (MazeNode n : nodePath) {
+			n.data = '*';
+		}
+
+		// this loop prints out the maze as represented in the graph as a 2D
+		// array. using this println statement for testing.
 		for (MazeNode[] array : graph.nodes) {
-			String row ="";
+			String row = "";
 			for (MazeNode node : array) {
-				row+=node.data;
+				row += node.data;
 			}
 			System.out.println(row);
 		}
@@ -33,7 +69,7 @@ public class PathFinder {
 
 	// used for testing
 	public static void main(String[] args) throws IOException {
-		solveMaze("tinyMaze.txt", "output");
+		solveMaze("classic.txt", "output");
 	}
 
 	/**
@@ -43,6 +79,7 @@ public class PathFinder {
 	 */
 	private static final class Graph {
 		MazeNode[][] nodes;
+		MazeNode start; // The node containing 'S' data
 
 		// Constructor makes a 2D MazeNode array from the maze file.
 		Graph(String inputFile) throws IOException {
@@ -57,7 +94,6 @@ public class PathFinder {
 			// of the maze
 			nodes = new MazeNode[height][width];
 			int row = 0;
-			int nodeNumber = 0; // unique number to be assigned to each node
 			// Creates a 2D array of nodes, row by row
 			while (row < height) {
 				// convert one row into a string
@@ -70,14 +106,17 @@ public class PathFinder {
 				for (char nodeChar : charArray) {
 					MazeNode mazeNode = new MazeNode(nodeChar); // creates the
 																// node
-					mazeNode.nodeNum = nodeNumber; // assigns its number
+					// if the maze node is S, assigns it as the starting node
+					if (mazeNode.data == 'S') {
+						start = mazeNode;
+					}
 					// adds the node to its correct spot relating to the maze
 					nodes[row][column] = mazeNode;
-					nodeNumber++;
 					column++;
 				}
 				row++;
 			}
+			input.close();
 			// Assigns every node in the 2D array its neighbors
 			assignNeighbors();
 		}
@@ -126,10 +165,9 @@ public class PathFinder {
 	 * @param <E>
 	 */
 	private static final class MazeNode {
-		int cameFrom; // Indicates the nodeNum from which this node came from
+		MazeNode cameFrom; // Indicates the Node from which this node came
+							// from
 		boolean visited;
-		int nodeNum; // Number to identify each node. Unique for each node in a
-						// maze/graph
 		Character data; // The element contained in the node. Either space, X,
 						// S, or G.
 		ArrayList<MazeNode> neighbors; // list of up to four adjacent nodes
@@ -142,18 +180,13 @@ public class PathFinder {
 		 */
 		MazeNode(Character data) {
 			this.data = data;
-			this.neighbors = new ArrayList<MazeNode>();
+			neighbors = new ArrayList<MazeNode>();
+			visited = false;
 		}
 
-		// using this for testing, will return this node's data followed by a
-		// space, followed by all of its neighbors
 		@Override
 		public String toString() {
-			String result = data + " ";
-			for (MazeNode n : neighbors) {
-				result += n.data;
-			}
-			return result;
+			return data + "";
 		}
 	}
 
