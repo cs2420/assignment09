@@ -14,9 +14,8 @@ public class PathFinder {
 		Graph graph = new Graph(inputFile);
 		// Queue used for path finding
 		Queue<MazeNode> queue = new LinkedList<MazeNode>();
-		// Contains nodes representing the shortest path from S to G
-		LinkedList<MazeNode> nodePath = new LinkedList<MazeNode>();
-		// Starts the search from the 'S' node obtained from the graph of the maze
+		// Starts the search from the 'S' node obtained from the graph of the
+		// maze
 		graph.start.visited = true;
 		queue.add(graph.start);
 		while (!queue.isEmpty()) {
@@ -30,9 +29,9 @@ public class PathFinder {
 				// loop used to construct the entire path, goes until it finds
 				// the starting point again
 				while (step.data != 'S') {
-					// adds the step to a list later used to create the path
-					// dots
-					nodePath.add(step);
+					// Changes the character in each node on the shortest path
+					// to '*'
+					step.data = '*';
 					step = step.cameFrom;
 				}
 				// Shortest path was found, stops searching
@@ -49,13 +48,8 @@ public class PathFinder {
 				}
 			}
 		}
-		// After the shortest path has been found, changes the chars in the
-		// nodes along the shortest path to '*'
-		for (MazeNode n : nodePath) {
-			n.data = '*';
-		}
 
-		// this loop prints out the maze as represented in the graph as a 2D
+		// this loop prints out the maze as represented in a 2D
 		// array. using this println statement for testing.
 		for (MazeNode[] array : graph.nodes) {
 			String row = "";
@@ -123,35 +117,30 @@ public class PathFinder {
 
 		// After the 2D array of Nodes is created, the nodes need to be assigned
 		// their neighbors based on where they are in the 2D array
-		public void assignNeighbors() {
+		private void assignNeighbors() {
 			// Traverses the 2D array by each row
 			for (int rowNum = 0; rowNum < nodes.length; rowNum++) {
 				MazeNode[] row = nodes[rowNum];
 				// Picks out each node in the row
 				for (int colNum = 0; colNum < row.length; colNum++) {
 					MazeNode node = nodes[rowNum][colNum];
-					ArrayList<MazeNode> adjacent = new ArrayList<MazeNode>();
-					// Adds all possible neighbors to the above list, if edge
-					// case does nothing
+					// Adds all possible neighbors, if edge case does nothing
 					try {
-						adjacent.add(nodes[rowNum - 1][colNum]);
+						node.neighbors.add(nodes[rowNum - 1][colNum]);
 					} catch (IndexOutOfBoundsException e) {
 					}
 					try {
-						adjacent.add(nodes[rowNum][colNum + 1]);
+						node.neighbors.add(nodes[rowNum][colNum + 1]);
 					} catch (IndexOutOfBoundsException e) {
 					}
 					try {
-						adjacent.add(nodes[rowNum + 1][colNum]);
+						node.neighbors.add(nodes[rowNum + 1][colNum]);
 					} catch (IndexOutOfBoundsException e) {
 					}
 					try {
-						adjacent.add(nodes[rowNum][colNum - 1]);
+						node.neighbors.add(nodes[rowNum][colNum - 1]);
 					} catch (IndexOutOfBoundsException e) {
 					}
-					// Adds all of these nodes to the current node's neighbor
-					// list
-					node.neighbors.addAll(adjacent);
 				}
 			}
 
