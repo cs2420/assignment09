@@ -2,12 +2,19 @@ package assignment09;
 
 import static org.junit.Assert.*;
 
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 
 import org.junit.Test;
+
+/**
+ * Tests pathfinding several types of mazes
+ * 
+ * @author Connor Ottenbacher and Doug Garding
+ */
 
 public class MazeTests {
 
