@@ -1,21 +1,39 @@
 package assignment09;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
+/**
+ * Class contains methods used for solving a text file maze and writing the
+ * solved maze to a new output file. Contains nested classes for representing
+ * the maze as a graph, characters in the maze as a node in that graph
+ * 
+ * @author Connor Ottenbacher and Doug Garding
+ */
 public class PathFinder {
 
+	/**
+	 * Takes in a text file containing a maze, solves the maze representing the
+	 * shortest path with '.' characters, and writes the solved maze to a new
+	 * file
+	 * 
+	 * @param inputFile
+	 *            the file name that contains the text maze
+	 * @param outputFile
+	 *            file name/ location for the solved maze file
+	 */
 	public static void solveMaze(String inputFile, String outputFile)
 			throws IOException {
 		Graph graph = new Graph(inputFile);
-		// Queue used for path finding
 		Queue<MazeNode> queue = new LinkedList<MazeNode>();
-		// Starts the search from the 'S' node obtained from the graph of the
-		// maze
+		// Begins the breadth-first search using the 'S' node obtained from the
+		// graph
 		graph.start.visited = true;
 		queue.add(graph.start);
 		while (!queue.isEmpty()) {
@@ -24,14 +42,13 @@ public class PathFinder {
 			// if this node matches the goal, constructs the pathway from where
 			// it came and breaks from the loop
 			if (current.data == 'G') {
-				// last node before the goal
 				MazeNode step = current.cameFrom;
 				// loop used to construct the entire path, goes until it finds
 				// the starting point again
 				while (step.data != 'S') {
 					// Changes the character in each node on the shortest path
-					// to '*'
-					step.data = '*';
+					// to '.'
+					step.data = '.';
 					step = step.cameFrom;
 				}
 				// Shortest path was found, stops searching
@@ -49,39 +66,66 @@ public class PathFinder {
 			}
 		}
 
-		// this loop prints out the maze as represented in a 2D
-		// array. using this println statement for testing.
+		// Writes the new maze with the solution to the outputFile
+		writeToFile(graph, outputFile);
+
+	}
+
+	/**
+	 * Helper method turns the graph's 2D array into a file with a certain file
+	 * name
+	 *
+	 * @param graph
+	 *            graph containing the solved maze, represented with a 2D array
+	 * @param outputFile
+	 *            the user specified file name
+	 */
+	private static void writeToFile(Graph graph, String outputFile) {
+		// Turns the graph into one string representing the maze
+		String solutionString = graph.dimensions[0] + " " + graph.dimensions[1]
+				+ '\n';
 		for (MazeNode[] array : graph.nodes) {
 			String row = "";
 			for (MazeNode node : array) {
 				row += node.data;
 			}
-			System.out.println(row);
+			row += '\n';
+			solutionString += row;
 		}
 
-	}
+		// writes the solution string to a file
+		try {
+			File file = new File(outputFile);
+			FileWriter fileWriter = new FileWriter(file);
+			fileWriter.write(solutionString);
+			fileWriter.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-	// used for testing
-	public static void main(String[] args) throws IOException {
-		solveMaze("classic.txt", "output");
 	}
 
 	/**
 	 * Graph class stores all of the characters in the maze as nodes in a 2D
 	 * array.
-	 *
 	 */
 	private static final class Graph {
 		MazeNode[][] nodes;
 		MazeNode start; // The node containing 'S' data
+		String[] dimensions; // Contains the dimensions of the maze
 
-		// Constructor makes a 2D MazeNode array from the maze file.
+		/**
+		 * Constructor for a graph, creates a graph of MazeNodes backed by a 2D
+		 * array from a text file maze
+		 * 
+		 * @param inputFile
+		 *            the file name that contains the text maze
+		 */
 		Graph(String inputFile) throws IOException {
-			// Creates a reader that will read the text file by line
 			BufferedReader input = new BufferedReader(new FileReader(inputFile));
 			// Grabs the first line which will always be the dimensions of the
 			// maze
-			String[] dimensions = input.readLine().split(" ");
+			dimensions = input.readLine().split(" ");
 			int height = Integer.parseInt(dimensions[0]);
 			int width = Integer.parseInt(dimensions[1]);
 			// Initializes a 2D array of nodes with the correct height and width
@@ -90,16 +134,14 @@ public class PathFinder {
 			int row = 0;
 			// Creates a 2D array of nodes, row by row
 			while (row < height) {
-				// convert one row into a string
+				// converts the row into a char array
 				String mazeRow = input.readLine();
-				// converts this string to a char array
 				char[] charArray = mazeRow.toCharArray();
 				int column = 0;
 				// for every character, creates a node and adds it to its
 				// correct row and column
 				for (char nodeChar : charArray) {
-					MazeNode mazeNode = new MazeNode(nodeChar); // creates the
-																// node
+					MazeNode mazeNode = new MazeNode(nodeChar);
 					// if the maze node is S, assigns it as the starting node
 					if (mazeNode.data == 'S') {
 						start = mazeNode;
@@ -115,8 +157,10 @@ public class PathFinder {
 			assignNeighbors();
 		}
 
-		// After the 2D array of Nodes is created, the nodes need to be assigned
-		// their neighbors based on where they are in the 2D array
+		/**
+		 * Helper method assigns the nodes in the graph's 2D array its neighbors
+		 * based upon where their location in the 2D array
+		 */
 		private void assignNeighbors() {
 			// Traverses the 2D array by each row
 			for (int rowNum = 0; rowNum < nodes.length; rowNum++) {
@@ -150,12 +194,9 @@ public class PathFinder {
 
 	/**
 	 * Node Class that stores elements in a maze.
-	 *
-	 * @param <E>
 	 */
 	private static final class MazeNode {
 		MazeNode cameFrom; // Indicates the Node from which this node came
-							// from
 		boolean visited;
 		Character data; // The element contained in the node. Either space, X,
 						// S, or G.
